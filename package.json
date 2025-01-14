@@ -1,0 +1,46 @@
+{
+  "name": "venues",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Data visualization project to explore locations of music venues",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate": "graphql-codegen --watch \"src/schema.graphql\""
+  },
+  "keywords": [
+    "music",
+    "data",
+    "viz"
+  ],
+  "author": "Tim Leonard",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^4.11.3",
+    "@as-integrations/next": "^3.2.0",
+    "@parcel/watcher": "^2.5.0",
+    "body-parser": "^1.20.3",
+    "d3": "^7.9.0",
+    "graphql-tag": "^2.12.6",
+    "mongodb": "^6.12.0",
+    "next": "^15.1.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.3",
+    "@graphql-codegen/typescript": "^4.1.2",
+    "@graphql-codegen/typescript-resolvers": "^4.4.1",
+    "@types/body-parser": "^1.19.5",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^22.10.3",
+    "@types/react": "^19.0.2",
+    "nodemon": "^3.1.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

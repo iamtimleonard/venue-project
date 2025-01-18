@@ -65,3 +65,24 @@ type CreateVenueResponse {
   "the newly created listing"
   venue: Venue
 }
+
+input CreateVenueInput {
+  "optional id"
+  id: ID
+  "the general locale of the venue"
+  area: String!
+  "the name of the venue"
+  name: String!
+  "the coordinates of the location of the venue"
+  location: [Float]
+  "the ISO formatted date of the opening of the venue, as precisely as possible (YYYY-MM-DD)"
+  dateOpen: String!
+  "the ISO formatted date of the closing of the venue, as precisely as possible (YYYY-MM-DD)"
+  dateClosed: String
+  "the genres represented by the venue"
+  genres: [String!]! 
+  "the capacity of the audience"
+  capacity: Int
+  "the type of venue"
+  type: VenueType
+}

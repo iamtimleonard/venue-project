@@ -1,31 +1,33 @@
-import { Resolvers } from './types'
+import { Resolvers, Venue } from './types'
 
 export const resolvers: Resolvers = {
   Query: {
-    venues: (_, { area }, { dataSources, client }) => {
-      console.log("getting venues")
-      return dataSources.venuesApi.getVenues(client, area)
-    }
-  },
-  Mutation: {
-    createVenue: async (_, { input }, { dataSources, client }) => {
-      try {
-        const response = await dataSources.venuesApi.createVenue(client, input)
-
-        return {
-          code: 200,
-          success: true,
-          message: "Venue successfully create!",
-          listing: response
-        }
-      } catch (error) {
-        console.error(error)
-        return {
-          code: 500,
-          success: false,
-          message: `Something went wrong`
-        }
-      }
+    venues: async (_, { area }, { dataSources, sheets }) => {
+        const [fields, ...data]: string[][] = await sheets.spreadsheets.values.get({
+          range: `${area}!A1:I73`,
+          spreadsheetId: process.env.SHEET_ID
+        }).then((res) => res.data.values).catch((err) => { 
+          console.error(err)
+          return []
+        })
+        const res = data.map((rawData: string[]) => fields.reduce((obj, prop, idx) => {
+          const value = rawData[idx]
+          try {
+          if (prop === 'location') {
+            obj[prop] = value.split(',').map((val) => +val)
+          } else if (prop === 'genres') {
+            obj[prop] = value.split(',').map((val) => val.trim())
+          } else if (prop === 'id' || prop === 'capacity') {
+            obj[prop] = +value
+          } else {
+            obj[prop] = value
+          }
+          } catch (err) {
+            console.error(err)
+          }
+          return obj
+        }, {} as Venue))
+        return res
     }
   }
 }

@@ -1,24 +1,53 @@
+enum VenueType {
+  STADIUM
+  CONCERT_HALL
+  OPERA_HOUSE
+  BAR
+  OUTDOOR
+  NIGHTCLUB
+  CLUB
+  PLAYHOUSE
+  DIY
+}
+
+enum PrimaryType {
+  ROCK
+  JAZZ
+  CLASSICAL
+  DIY
+  EXPERIMENTAL
+  TECHNO
+  POPULAR
+  FOLK
+}
+
 "A location that either existed at one time or still exists"
 type Venue {
   "the ID of the venue"
-  id: ID!
+  id: Int!
   "the general locale of the venue"
   area: String!
   "the name of the venue"
   name: String!
   "the coordinates of the location of the venue"
-  location: [Float]
+  location: [Float!]!
   "the ISO formatted date of the opening of the venue, as precisely as possible (YYYY-MM-DD)"
   dateOpen: String!
   "the ISO formatted date of the closing of the venue, as precisely as possible (YYYY-MM-DD)"
   dateClosed: String
+  "the primary vibe of the venue"
+  primary: PrimaryType
   "the genres represented by the venue"
   genres: [String!]!
+  "the size of the audience"
+  capacity: Int
+  "the kind of space"
+  type: VenueType
 }
 
 type Query {
   "A list of venues"
-  venues(area: String): [Venue!]!
+  venues(area: String): [Venue]
 }
 
 type Mutation {
@@ -35,19 +64,4 @@ type CreateVenueResponse {
   message: String!
   "the newly created listing"
   venue: Venue
-}
-
-input CreateVenueInput {
-  "the general locale of the venue"
-  area: String!
-  "the name of the venue"
-  name: String!
-  "the coordinates of the location of the venue"
-  location: [Float]
-  "the ISO formatted date of the opening of the venue, as precisely as possible (YYYY-MM-DD)"
-  dateOpen: String!
-  "the ISO formatted date of the closing of the venue, as precisely as possible (YYYY-MM-DD)"
-  dateClosed: String
-  "the genres represented by the venue"
-  genres: [String!]! 
 }

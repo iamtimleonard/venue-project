@@ -1,8 +1,8 @@
-import { MongoClient } from "mongodb"
 import { venuesApi } from "./venues-api"
+import { google } from "googleapis"
 
 export type DataSourceContext = {
-  client: MongoClient
+  sheets: ReturnType<typeof google.sheets>
   dataSources: {
     venuesApi: typeof venuesApi
   }

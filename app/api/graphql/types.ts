@@ -19,16 +19,22 @@ export type Scalars = {
 export type CreateVenueInput = {
   /** the general locale of the venue */
   area: Scalars['String']['input'];
+  /** the capacity of the audience */
+  capacity?: InputMaybe<Scalars['Int']['input']>;
   /** the ISO formatted date of the closing of the venue, as precisely as possible (YYYY-MM-DD) */
   dateClosed?: InputMaybe<Scalars['String']['input']>;
   /** the ISO formatted date of the opening of the venue, as precisely as possible (YYYY-MM-DD) */
   dateOpen: Scalars['String']['input'];
   /** the genres represented by the venue */
   genres: Array<Scalars['String']['input']>;
+  /** optional id */
+  id?: InputMaybe<Scalars['ID']['input']>;
   /** the coordinates of the location of the venue */
   location?: InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>;
   /** the name of the venue */
   name: Scalars['String']['input'];
+  /** the type of venue */
+  type?: InputMaybe<VenueType>;
 };
 
 export type CreateVenueResponse = {
@@ -54,10 +60,21 @@ export type MutationCreateVenueArgs = {
   input?: InputMaybe<CreateVenueInput>;
 };
 
+export enum PrimaryType {
+  Classical = 'CLASSICAL',
+  Diy = 'DIY',
+  Experimental = 'EXPERIMENTAL',
+  Folk = 'FOLK',
+  Jazz = 'JAZZ',
+  Popular = 'POPULAR',
+  Rock = 'ROCK',
+  Techno = 'TECHNO'
+}
+
 export type Query = {
   __typename?: 'Query';
   /** A list of venues */
-  venues: Array<Venue>;
+  venues?: Maybe<Array<Maybe<Venue>>>;
 };
 
 
@@ -70,6 +87,8 @@ export type Venue = {
   __typename?: 'Venue';
   /** the general locale of the venue */
   area: Scalars['String']['output'];
+  /** the size of the audience */
+  capacity?: Maybe<Scalars['Int']['output']>;
   /** the ISO formatted date of the closing of the venue, as precisely as possible (YYYY-MM-DD) */
   dateClosed?: Maybe<Scalars['String']['output']>;
   /** the ISO formatted date of the opening of the venue, as precisely as possible (YYYY-MM-DD) */
@@ -77,12 +96,28 @@ export type Venue = {
   /** the genres represented by the venue */
   genres: Array<Scalars['String']['output']>;
   /** the ID of the venue */
-  id: Scalars['ID']['output'];
+  id: Scalars['Int']['output'];
   /** the coordinates of the location of the venue */
-  location?: Maybe<Array<Maybe<Scalars['Float']['output']>>>;
+  location: Array<Scalars['Float']['output']>;
   /** the name of the venue */
   name: Scalars['String']['output'];
+  /** the primary vibe of the venue */
+  primary?: Maybe<PrimaryType>;
+  /** the kind of space */
+  type?: Maybe<VenueType>;
 };
+
+export enum VenueType {
+  Bar = 'BAR',
+  Club = 'CLUB',
+  ConcertHall = 'CONCERT_HALL',
+  Diy = 'DIY',
+  Nightclub = 'NIGHTCLUB',
+  OperaHouse = 'OPERA_HOUSE',
+  Outdoor = 'OUTDOOR',
+  Playhouse = 'PLAYHOUSE',
+  Stadium = 'STADIUM'
+}
 
 
 
@@ -162,9 +197,11 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<{}>;
+  PrimaryType: PrimaryType;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Venue: ResolverTypeWrapper<Venue>;
+  VenueType: VenueType;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -194,17 +231,20 @@ export type MutationResolvers<ContextType = DataSourceContext, ParentType extend
 };
 
 export type QueryResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  venues?: Resolver<Array<ResolversTypes['Venue']>, ParentType, ContextType, Partial<QueryVenuesArgs>>;
+  venues?: Resolver<Maybe<Array<Maybe<ResolversTypes['Venue']>>>, ParentType, ContextType, Partial<QueryVenuesArgs>>;
 };
 
 export type VenueResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue']> = {
   area?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  capacity?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   dateClosed?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dateOpen?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   genres?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  location?: Resolver<Maybe<Array<Maybe<ResolversTypes['Float']>>>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  location?: Resolver<Array<ResolversTypes['Float']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  primary?: Resolver<Maybe<ResolversTypes['PrimaryType']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['VenueType']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

@@ -2,7 +2,7 @@
 
 import { ChangeEvent, Reducer, useEffect, useReducer, useState } from "react";
 import { Venue } from "./api/graphql/types";
-import dynamic from "next/dynamic";
+import Map from "./Map"
 
 type VenueState = {
   areaVenues: Venue[]
@@ -13,9 +13,6 @@ type VenueState = {
     area: string
   }
 }
-
-const Map = dynamic(() => import("./Map"), { ssr: false });
-
 
 
 const reducer: Reducer<VenueState, { payload: { filter: { genre?: string, date:string, area: string }; areaVenues: Venue[] }, type: 'filter:update' | 'area:update' }> = (state, action) => {
@@ -43,37 +40,36 @@ const reducer: Reducer<VenueState, { payload: { filter: { genre?: string, date:s
 }
 
 export default function Page() {
-  const [venues, dispatch] = useReducer(reducer, { areaVenues: [], filteredVenues: [], filter: { genre: '', area: '', date: new Date().toISOString().split('T', 1)[0] } })
+  const [venues, dispatch] = useReducer(reducer, { areaVenues: [], filteredVenues: [], filter: { genre: '', area: '', date: '2025' } })
   const [geoData, setGeoData] = useState(null)
-
-  useEffect(() => {
-    fetch('/philadelphia.geojson').then((res) => res.json()).then((res) => setGeoData(res))
-  },[]);
-
   const [genres, setGenres] = useState<string[]>([])
 
   const handleAreaChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-    const { data } = await fetch("/api/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `
-          query {
-            venues(area: "${e.target.value}") {
-              id
-              name
-              location
-              genres
-              dateOpen
-              dateClosed
+    const [geoJson, venueRes] = await Promise.all([
+      fetch(`/${e.target.value}.geojson`).then((res) => res.json()), 
+      fetch("/api/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+            query {
+              venues(area: "${e.target.value}") {
+                id
+                name
+                location
+                genres
+                dateOpen
+                dateClosed
+                capacity
+              }
             }
-          }
-        `,
-      }),
-    }).then((res) => res.json())
-    const newVenues = data.venues
+          `,
+        }),
+    }).then((res) => res.json())])
+    setGeoData(geoJson)
+    const newVenues = venueRes.data.venues
     setGenres(newVenues.reduce((acc: string[], venue: Venue) => {
       return acc.concat(venue.genres)
     }, []))
@@ -115,8 +111,8 @@ export default function Page() {
         <option value="New York City">New York City</option>
         <option value="Philadelphia">Philadelphia</option>
       </select>
-      <label htmlFor="open-date">Choose a date:</label>
-      <input id="open-date" type="date" value={venues.filter.date} min="1900-01-01" max="2030-01-01" onChange={handleDateChange} />
+      <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
+      <input id="open-date" type="range" value={venues.filter.date} step={1} min={1900} max={2030} onChange={handleDateChange} />
       <select value={venues.filter.genre} onChange={handleGenreChange}>
         <option value="">-- Please Choose A Genre --</option>
         {genres.map((genre, idx) => <option value={genre} key={idx}>{genre}</option>)}

@@ -4,7 +4,7 @@ export const resolvers: Resolvers = {
   Query: {
     venues: async (_, { area }, { dataSources, sheets }) => {
         const [fields, ...data]: string[][] = await sheets.spreadsheets.values.get({
-          range: `${area}!A1:I73`,
+          range: `${area}!A1:I78`,
           spreadsheetId: process.env.SHEET_ID
         }).then((res) => res.data.values).catch((err) => { 
           console.error(err)

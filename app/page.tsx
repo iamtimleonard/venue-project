@@ -118,16 +118,6 @@ export default function Page() {
         {genres.map((genre, idx) => <option value={genre} key={idx}>{genre}</option>)}
       </select>
     </div>
-    <div>
-      <p>All venues in {venues.filter.area}:</p>
-      <ul>
-        {venues.areaVenues.map((venue, idx) => <li key={idx}>{venue.name}</li>)}
-      </ul>
-      <p>Filtered venues:</p>
-      <ul>
-        {venues.filteredVenues.map((venue, idx) => <li key={idx}>{venue.name}</li>)}
-      </ul>
-    </div>
     {geoData ? <Map data={geoData} points={venues.filteredVenues.map((venue) => ({...venue, latitude: venue.location[0], longitude: venue.location[1]}))} /> : null}
   </>)
 }

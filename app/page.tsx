@@ -20,7 +20,7 @@ const reducer: Reducer<VenueState, { payload: { filter: { genre?: string, date:s
     case 'filter:update': {
       const newFilter = action.payload.filter
       const filteredVenues = state.areaVenues.filter((venue) => {
-        return newFilter.genre ? venue.genres.includes(newFilter.genre) : true
+        return (newFilter.genre ? venue.genres.includes(newFilter.genre) : true)
           && (venue.dateOpen <= newFilter.date
           && (venue.dateClosed ? venue.dateClosed >= newFilter.date : true))
       })
@@ -31,10 +31,15 @@ const reducer: Reducer<VenueState, { payload: { filter: { genre?: string, date:s
       const newVenues = action.payload.areaVenues
       const newFilter = {
         genre: '',
-        date: new Date().toISOString().split('T', 1)[0],
+        date: new Date().getFullYear().toString(),
         area: action.payload.filter.area
       }
-      return { areaVenues: newVenues, filteredVenues: newVenues, filter: newFilter, }
+      const filteredVenues = newVenues.filter((venue) => {
+        return (newFilter.genre ? venue.genres.includes(newFilter.genre) : true)
+          && (venue.dateOpen <= newFilter.date
+          && (venue.dateClosed ? venue.dateClosed >= newFilter.date : true))
+      })
+      return { areaVenues: newVenues, filteredVenues, filter: newFilter, }
     }
   }
 }
@@ -45,6 +50,7 @@ export default function Page() {
   const [genres, setGenres] = useState<string[]>([])
 
   const handleAreaChange = async (e: ChangeEvent<HTMLSelectElement>) => {
+    dispatch({ type: "area:update", payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: []}})
     const [geoJson, venueRes] = await Promise.all([
       fetch(`/${e.target.value}.geojson`).then((res) => res.json()), 
       fetch("/api/graphql", {
@@ -112,7 +118,7 @@ export default function Page() {
         <option value="Philadelphia">Philadelphia</option>
       </select>
       <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
-      <input id="open-date" type="range" value={venues.filter.date} step={1} min={1900} max={2030} onChange={handleDateChange} />
+      <input id="open-date" type="range" value={venues.filter.date} step={1} min={1900} max={new Date().getFullYear().toString()} onChange={handleDateChange} />
       <select value={venues.filter.genre} onChange={handleGenreChange}>
         <option value="">-- Please Choose A Genre --</option>
         {genres.map((genre, idx) => <option value={genre} key={idx}>{genre}</option>)}

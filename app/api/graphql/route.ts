@@ -2,7 +2,6 @@ import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { ApolloServer } from "@apollo/server";
 import { google } from "googleapis"
 import typeDefs from "./schema.graphql"
-import { venuesApi } from "./venues-api";
 import { resolvers } from "./resolvers";
 
 const server = new ApolloServer({
@@ -17,9 +16,6 @@ const handler = startServerAndCreateNextHandler(server, {
   context: async (req, res) => {
     return {
       sheets,
-      dataSources: {
-        venuesApi
-      }
     }
   }
 });

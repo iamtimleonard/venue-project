@@ -2,7 +2,7 @@ import { Resolvers, Venue } from './types'
 
 export const resolvers: Resolvers = {
   Query: {
-    venues: async (_, { area }, { dataSources, sheets }) => {
+    venues: async (_, { area }, { sheets }) => {
         const [fields, ...data]: string[][] = await sheets.spreadsheets.values.get({
           range: `${area}!A1:I83`,
           spreadsheetId: process.env.SHEET_ID

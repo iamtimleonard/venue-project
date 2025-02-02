@@ -1,8 +1,9 @@
 "use client"
 
-import { ChangeEvent, Reducer, useEffect, useReducer, useState } from "react";
+import { ChangeEvent, Reducer, useReducer, useState } from "react";
 import { Venue } from "./api/graphql/types";
 import Map from "./Map"
+import styles from "./page.module.css"
 
 type VenueState = {
   areaVenues: Venue[]
@@ -110,8 +111,8 @@ export default function Page() {
     })
   }
 
-  return (<>
-    <div>
+  return (<main className={styles.main}>
+    <div className={styles.filter}>
       <select value={venues.filter.area} onChange={handleAreaChange}>
         <option value=''>-- Please Choose An Area --</option>
         <option value="New York City">New York City</option>
@@ -124,6 +125,8 @@ export default function Page() {
         {genres.map((genre, idx) => <option value={genre} key={idx}>{genre}</option>)}
       </select>
     </div>
-    {geoData ? <Map data={geoData} points={venues.filteredVenues.map((venue) => ({...venue, latitude: venue.location[0], longitude: venue.location[1]}))} /> : null}
-  </>)
+    <div className={styles.chart}>
+      {geoData ? <Map data={geoData} points={venues.filteredVenues.map((venue) => ({...venue, latitude: venue.location[0], longitude: venue.location[1]}))} /> : null}
+    </div>
+  </main>)
 }

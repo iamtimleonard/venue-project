@@ -106,7 +106,7 @@ const Map: React.FC<MapProps> = ({ data, points }) => {
   ] = pathGenerator.bounds({ type: "Sphere" })
   const height = y1
 
-  return (<div ref={ref} style={{ height: "1000px"}}>
+  return (<div ref={ref} style={{ height: "100vh"}}>
     <svg 
       width={dms.width} 
       height={dms.height}>

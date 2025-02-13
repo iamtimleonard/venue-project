@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     });
 
     return config;
+  },
+  outputFileTracingIncludes: {
+    'api/graphql': ['./secrets.json']
   }
 }
  

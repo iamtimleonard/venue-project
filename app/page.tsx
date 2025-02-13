@@ -78,7 +78,7 @@ export default function Page() {
     setGeoData(geoJson)
     const newVenues = venueRes.data.venues
     setGenres(newVenues.reduce((acc: string[], venue: Venue) => {
-      return acc.concat(venue.genres)
+      return acc.concat(venue.genres.filter((genre) => !acc.includes(genre)))
     }, []))
     dispatch({ type: 'area:update', payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: newVenues } })
   }

@@ -63,7 +63,7 @@ export default function Page() {
   });
   const [geoData, setGeoData] = useState(null);
   const [genres, setGenres] = useState<string[]>([]);
-  const [view, setView] = useState<string>('table');
+  const [view, setView] = useState<string>('list');
 
   const handleAreaChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     dispatch({ type: 'area:update', payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: [] } });
@@ -137,7 +137,7 @@ export default function Page() {
       <div className={styles.filter}>
         <select value={venues.filter.area} onChange={handleAreaChange}>
           <option value="">-- Please Choose An Area --</option>
-          <option value="New York City">New York City</option>
+          {/* <option value="New York City">New York City</option> */}
           <option value="Philadelphia">Philadelphia</option>
         </select>
         <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
@@ -168,7 +168,7 @@ export default function Page() {
               name="drone"
               value="list"
               checked={view === 'list'}
-              onClick={() => setView('list')}
+              onChange={() => setView('list')}
             />
             <label htmlFor="list">List</label>
           </div>
@@ -180,7 +180,7 @@ export default function Page() {
               name="drone"
               value="map"
               checked={view === 'map'}
-              onClick={() => setView('map')}
+              onChange={() => setView('map')}
             />
             <label htmlFor="map">Map</label>
           </div>
@@ -188,11 +188,11 @@ export default function Page() {
       </div>
       <div className={styles.chart}>
         {!geoData ? null : view === 'list' ? (
-          <TableView venues={venues.areaVenues} />
+          <TableView venues={venues.filteredVenues} />
         ) : view === 'map' ? (
           <Map
             data={geoData}
-            points={venues.areaVenues.map((venue) => ({
+            points={venues.filteredVenues.map((venue) => ({
               ...venue,
               latitude: venue.location[0],
               longitude: venue.location[1],

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, ReactNode, Reducer, useReducer, useState } from 'react';
+import { act, ChangeEvent, ReactNode, Reducer, useReducer, useState } from 'react';
 import { Venue } from './api/graphql/types';
 import Map from './Map';
 import styles from './page.module.css';
@@ -19,8 +19,8 @@ type VenueState = {
 const reducer: Reducer<
   VenueState,
   {
-    payload: { filter: { genre?: string; date: string; area: string }; areaVenues: Venue[] };
-    type: 'filter:update' | 'area:update';
+    payload: { filter: { genre?: string; date: string; area: string }; areaVenues: Venue[]; selectedVenues?: Venue[] };
+    type: 'filter:update' | 'area:update' | 'selected:update';
   }
 > = (state, action) => {
   switch (action.type) {
@@ -52,6 +52,11 @@ const reducer: Reducer<
       });
       return { areaVenues: newVenues, filteredVenues, filter: newFilter };
     }
+
+    case 'selected:update': {
+      if (!action.payload.selectedVenues) return;
+      return { ...state, filteredVenues: action.payload.selectedVenues };
+    }
   }
 };
 
@@ -64,6 +69,13 @@ export default function Page() {
   const [geoData, setGeoData] = useState(null);
   const [genres, setGenres] = useState<string[]>([]);
   const [view, setView] = useState<string>('list');
+
+  const onRowSelection = (selectedVenues: Venue[]) => {
+    dispatch({
+      type: 'selected:update',
+      payload: { filter: { ...venues.filter }, selectedVenues, areaVenues: venues.areaVenues },
+    });
+  };
 
   const handleAreaChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     dispatch({ type: 'area:update', payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: [] } });
@@ -188,7 +200,7 @@ export default function Page() {
       </div>
       <div className={styles.chart}>
         {!geoData ? null : view === 'list' ? (
-          <TableView venues={venues.filteredVenues} />
+          <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} />
         ) : view === 'map' ? (
           <Map
             data={geoData}

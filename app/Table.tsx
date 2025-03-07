@@ -4,7 +4,7 @@ import { Venue } from './api/graphql/types';
 
 type TableProps = {
   venues: Venue[];
-  onRowSelection: (venues: Venue[]) => void;
+  onRowSelection: (venues: Venue) => void;
 };
 
 const TableView: React.FC<TableProps> = ({ venues, onRowSelection }) => {
@@ -15,13 +15,13 @@ const TableView: React.FC<TableProps> = ({ venues, onRowSelection }) => {
     { field: 'capacity', headerName: 'Capacity', sortable: true },
     { field: 'genres', valueFormatter: (value: string[]) => value.join(', ') },
   ];
+
   return (
     <Paper sx={{ width: 'auto', overflow: 'hidden' }}>
       <DataGrid
         columns={columns}
         rows={venues}
-        checkboxSelection
-        onRowSelectionModelChange={(model, details) => onRowSelection(model.map((rowId) => details.api.getRow(rowId)))}
+        onRowClick={(params) => onRowSelection(params.row)}
         sx={{ maxHeight: 440 }}
       />
     </Paper>

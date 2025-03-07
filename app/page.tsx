@@ -1,6 +1,6 @@
 'use client';
 
-import { act, ChangeEvent, ReactNode, Reducer, useReducer, useState } from 'react';
+import { ChangeEvent, Reducer, useEffect, useReducer, useState } from 'react';
 import { Venue } from './api/graphql/types';
 import Map from './Map';
 import styles from './page.module.css';
@@ -9,6 +9,8 @@ import TableView from './Table';
 type VenueState = {
   areaVenues: Venue[];
   filteredVenues: Venue[];
+  openVenues: number[];
+  focusedVenue?: number;
   filter: {
     genre?: string;
     date: string;
@@ -19,7 +21,12 @@ type VenueState = {
 const reducer: Reducer<
   VenueState,
   {
-    payload: { filter: { genre?: string; date: string; area: string }; areaVenues: Venue[]; selectedVenues?: Venue[] };
+    payload: {
+      filter: { genre?: string; date: string; area: string };
+      areaVenues: Venue[];
+      selectedVenues?: Venue[];
+      focusedVenue?: Venue;
+    };
     type: 'filter:update' | 'area:update' | 'selected:update';
   }
 > = (state, action) => {
@@ -33,7 +40,13 @@ const reducer: Reducer<
           (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
         );
       });
-      return { ...state, filter: newFilter, filteredVenues };
+      const openVenues = state.areaVenues
+        .filter(
+          (venue) => venue.dateOpen <= newFilter.date && (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
+        )
+        .map((venue) => venue.id);
+
+      return { ...state, filter: newFilter, filteredVenues, openVenues };
     }
 
     case 'area:update': {
@@ -50,12 +63,22 @@ const reducer: Reducer<
           (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
         );
       });
-      return { areaVenues: newVenues, filteredVenues, filter: newFilter };
+      const openVenues = newVenues
+        .filter(
+          (venue) => venue.dateOpen <= newFilter.date && (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
+        )
+        .map((venue) => venue.id);
+      const closedVenues = newVenues
+        .filter(
+          (venue) => venue.dateOpen >= newFilter.date && (venue.dateClosed ? venue.dateClosed <= newFilter.date : true)
+        )
+        .map((venue) => venue.id);
+      console.log({ openVenues, closedVenues });
+      return { areaVenues: newVenues, filteredVenues, filter: newFilter, openVenues, closedVenues };
     }
 
     case 'selected:update': {
-      if (!action.payload.selectedVenues) return;
-      return { ...state, filteredVenues: action.payload.selectedVenues };
+      return { ...state, filter: action.payload.filter, focusedVenue: action.payload.focusedVenue.id };
     }
   }
 };
@@ -64,55 +87,17 @@ export default function Page() {
   const [venues, dispatch] = useReducer(reducer, {
     areaVenues: [],
     filteredVenues: [],
-    filter: { genre: '', area: '', date: '2025' },
+    openVenues: [],
+    filter: { genre: '', area: 'Philadelphia', date: '2025' },
   });
   const [geoData, setGeoData] = useState(null);
   const [genres, setGenres] = useState<string[]>([]);
-  const [view, setView] = useState<string>('list');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const onRowSelection = (selectedVenues: Venue[]) => {
+  const onRowSelection = (focusedVenue: Venue) => {
     dispatch({
       type: 'selected:update',
-      payload: { filter: { ...venues.filter }, selectedVenues, areaVenues: venues.areaVenues },
-    });
-  };
-
-  const handleAreaChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-    dispatch({ type: 'area:update', payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: [] } });
-    const [geoJson, venueRes] = await Promise.all([
-      fetch(`/${e.target.value}.geojson`).then((res) => res.json()),
-      fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query {
-              venues(area: "${e.target.value}") {
-                id
-                name
-                location
-                genres
-                dateOpen
-                dateClosed
-                capacity
-              }
-            }
-          `,
-        }),
-      }).then((res) => res.json()),
-    ]);
-    setGeoData(geoJson);
-    const newVenues = venueRes.data.venues;
-    setGenres(
-      newVenues.reduce((acc: string[], venue: Venue) => {
-        return acc.concat(venue.genres.filter((genre) => !acc.includes(genre)));
-      }, [])
-    );
-    dispatch({
-      type: 'area:update',
-      payload: { filter: { ...venues.filter, area: e.target.value }, areaVenues: newVenues },
+      payload: { filter: { ...venues.filter }, focusedVenue, areaVenues: venues.areaVenues },
     });
   };
 
@@ -144,14 +129,51 @@ export default function Page() {
     });
   };
 
+  useEffect(() => {
+    Promise.all([
+      fetch(`/Philadelphia.geojson`).then((res) => res.json()),
+      fetch('/api/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            query {
+              venues(area: "Philadelphia") {
+                id
+                name
+                location
+                genres
+                dateOpen
+                dateClosed
+                capacity
+              }
+            }
+          `,
+        }),
+      }).then((res) => res.json()),
+    ]).then(([geoJson, venueRes]) => {
+      setGeoData(geoJson);
+      const newVenues = venueRes.data.venues;
+      setGenres(
+        newVenues.reduce((acc: string[], venue: Venue) => {
+          return acc.concat(venue.genres.filter((genre) => !acc.includes(genre)));
+        }, [])
+      );
+      dispatch({
+        type: 'area:update',
+        payload: { filter: { ...venues.filter, area: 'Philadelphia' }, areaVenues: newVenues },
+      });
+      setIsLoading(false);
+    });
+  }, []);
+
+  if (isLoading) return <h1>Loading</h1>;
+
   return (
     <main className={styles.main}>
       <div className={styles.filter}>
-        <select value={venues.filter.area} onChange={handleAreaChange}>
-          <option value="">-- Please Choose An Area --</option>
-          {/* <option value="New York City">New York City</option> */}
-          <option value="Philadelphia">Philadelphia</option>
-        </select>
         <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
         <input
           id="open-date"
@@ -163,54 +185,26 @@ export default function Page() {
           onChange={handleDateChange}
         />
         <select value={venues.filter.genre} onChange={handleGenreChange}>
-          <option value="">-- Please Choose A Genre --</option>
+          <option value="">-- Filter by Genre --</option>
           {genres.map((genre, idx) => (
             <option value={genre} key={idx}>
               {genre}
             </option>
           ))}
         </select>
-        <fieldset>
-          <legend>Select a view:</legend>
-
-          <div>
-            <input
-              type="radio"
-              id="list"
-              name="drone"
-              value="list"
-              checked={view === 'list'}
-              onChange={() => setView('list')}
-            />
-            <label htmlFor="list">List</label>
-          </div>
-
-          <div>
-            <input
-              type="radio"
-              id="map"
-              name="drone"
-              value="map"
-              checked={view === 'map'}
-              onChange={() => setView('map')}
-            />
-            <label htmlFor="map">Map</label>
-          </div>
-        </fieldset>
+        <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} />
       </div>
       <div className={styles.chart}>
-        {!geoData ? null : view === 'list' ? (
-          <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} />
-        ) : view === 'map' ? (
-          <Map
-            data={geoData}
-            points={venues.filteredVenues.map((venue) => ({
-              ...venue,
-              latitude: venue.location[0],
-              longitude: venue.location[1],
-            }))}
-          />
-        ) : null}
+        <Map
+          data={geoData}
+          points={venues.areaVenues.map((venue) => ({
+            ...venue,
+            latitude: venue.location[0],
+            longitude: venue.location[1],
+          }))}
+          openVenues={venues.openVenues}
+          focusedVenue={venues.focusedVenue}
+        />
       </div>
     </main>
   );

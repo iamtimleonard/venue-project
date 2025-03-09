@@ -17,9 +17,20 @@ const Points: React.FC<{
     punk: 'red',
     folk: 'yellow',
     'R&B': 'violet',
+    soul: 'violet',
     indie: 'red',
   };
   return points.map((venue) => {
+    const strokeWidth = (capacity = 500) => {
+      const minCapacity = 100;
+      const maxCapacity = 100000;
+      const maxStrokeWidth = 20;
+      const minStrokeWidth = 1;
+      return (
+        ((capacity - minCapacity) / (maxCapacity - minCapacity)) * (maxStrokeWidth - minStrokeWidth) + minStrokeWidth
+      );
+    };
+
     return (
       <circle
         cx={projection([venue.longitude, venue.latitude])[0]}
@@ -28,6 +39,8 @@ const Points: React.FC<{
         r={venue.id === focusedVenue ? 6 : 3}
         fill={!openVenues.includes(venue.id) ? 'transparent' : colors[venue.genres[0] || 'black']}
         stroke={colors[venue.genres[0]] || 'black'}
+        strokeWidth={strokeWidth(venue.capacity)}
+        strokeOpacity={0.2}
       >
         <title>{venue.name}</title>
       </circle>

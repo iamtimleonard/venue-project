@@ -1,7 +1,7 @@
 import { ResizeObserver } from '@juggle/resize-observer';
 import * as d3 from 'd3';
 import { Venue } from './api/graphql/types';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Points from './Points';
 
 interface GeoJSONFeature {
@@ -82,15 +82,20 @@ const chartSettings = {
 
 const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => {
   const [ref, dms] = useChartDimensions(chartSettings);
-  const projection = d3
-    .geoMercator()
-    .center([-75.1652, 39.9526])
-    .scale(100000)
-    .translate([dms.width / 2, dms.height / 2]);
+  console.log({ dms });
+  const projection = useMemo(() => {
+    const baseScale = 100000;
+    const scaleFactor = Math.min(dms.width, dms.height) / 1000;
+    const scale = baseScale * scaleFactor;
+    return d3
+      .geoMercator()
+      .center([-75.1652, 39.9526])
+      .scale(scale)
+      .translate([dms.width / 2, dms.height / 2]);
+  }, [dms.width, dms.height]);
   const pathGenerator = d3.geoPath(projection);
 
   const [[x0, y0], [x1, y1]] = pathGenerator.bounds({ type: 'Sphere' });
-  const height = y1;
 
   return (
     <div ref={ref} style={{ height: '100vh' }}>

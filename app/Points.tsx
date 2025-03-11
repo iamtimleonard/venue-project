@@ -22,6 +22,7 @@ const Points: React.FC<{
   };
   return points.map((venue) => {
     const strokeWidth = (capacity = 500) => {
+      if (!openVenues.includes(venue.id)) return 1;
       const minCapacity = 100;
       const maxCapacity = 100000;
       const maxStrokeWidth = 20;

@@ -82,23 +82,28 @@ const chartSettings = {
 
 const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => {
   const [ref, dms] = useChartDimensions(chartSettings);
-  console.log({ dms });
+  const [zoomFactor, setZoomFactor] = useState(0);
+
+  const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
+    setZoomFactor((current) => {
+      return (current += e.deltaY);
+    });
+  };
+
   const projection = useMemo(() => {
     const baseScale = 100000;
     const scaleFactor = Math.min(dms.width, dms.height) / 1000;
-    const scale = baseScale * scaleFactor;
+    const scale = baseScale * scaleFactor + zoomFactor * 1000;
     return d3
       .geoMercator()
       .center([-75.1652, 39.9526])
       .scale(scale)
       .translate([dms.width / 2, dms.height / 2]);
-  }, [dms.width, dms.height]);
+  }, [dms.width, dms.height, zoomFactor]);
   const pathGenerator = d3.geoPath(projection);
 
-  const [[x0, y0], [x1, y1]] = pathGenerator.bounds({ type: 'Sphere' });
-
   return (
-    <div ref={ref} style={{ height: '100vh' }}>
+    <div ref={ref} style={{ height: '100vh' }} onWheel={handleZoom}>
       <svg width={dms.width} height={dms.height}>
         {data.features.map((feature) => (
           <path key={feature.properties.cartodb_id} d={pathGenerator(feature as any)} fill="#ddd" stroke="#333">

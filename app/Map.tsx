@@ -1,7 +1,7 @@
 import { ResizeObserver } from '@juggle/resize-observer';
 import * as d3 from 'd3';
 import { Venue } from './api/graphql/types';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Points from './Points';
 
 interface GeoJSONFeature {
@@ -59,13 +59,13 @@ const useChartDimensions = (passedSettings) => {
 
       const entry = entries[0];
 
-      if (width != entry.contentRect.width) setWidth(entry.contentRect.width);
-      if (height != entry.contentRect.height) setHeight(entry.contentRect.height);
+      if (width !== entry.contentRect.width) setWidth(entry.contentRect.width);
+      if (height !== entry.contentRect.height) setHeight(entry.contentRect.height);
     });
     resizeObserver.observe(element);
 
     return () => resizeObserver.unobserve(element);
-  }, []);
+  }, [dimensions.width, dimensions.height, width, height]);
 
   const newSettings = combineChartDimensions({
     ...dimensions,
@@ -82,35 +82,49 @@ const chartSettings = {
 
 const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => {
   const [ref, dms] = useChartDimensions(chartSettings);
-  const [zoomFactor, setZoomFactor] = useState(0);
-
-  const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
-    setZoomFactor((current) => {
-      return (current += e.deltaY);
-    });
-  };
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const projection = useMemo(() => {
     const baseScale = 100000;
     const scaleFactor = Math.min(dms.width, dms.height) / 1000;
-    const scale = baseScale * scaleFactor + zoomFactor * 1000;
+    const scale = baseScale * scaleFactor;
     return d3
       .geoMercator()
       .center([-75.1652, 39.9526])
       .scale(scale)
       .translate([dms.width / 2, dms.height / 2]);
-  }, [dms.width, dms.height, zoomFactor]);
+  }, [dms.width, dms.height]);
+
   const pathGenerator = d3.geoPath(projection);
 
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    const g = svg.select<SVGGElement>('g');
+
+    const zoom = d3
+      .zoom()
+      .scaleExtent([1, 8])
+      .on('zoom', (event) => {
+        const { transform } = event;
+        g.attr('transform', transform.toString());
+      });
+
+    svg.call(zoom);
+  }, [dms.width, dms.height]);
+
   return (
-    <div ref={ref} style={{ height: '100vh' }} onWheel={handleZoom}>
-      <svg width={dms.width} height={dms.height}>
-        {data.features.map((feature) => (
-          <path key={feature.properties.cartodb_id} d={pathGenerator(feature as any)} fill="#ddd" stroke="#333">
-            <title>{feature.properties.name}</title>
-          </path>
-        ))}
-        <Points points={points} projection={projection} openVenues={openVenues} focusedVenue={focusedVenue} />
+    <div ref={ref} style={{ height: '100vh' }}>
+      <svg ref={svgRef} width={dms.width} height={dms.height}>
+        <g>
+          {data.features.map((feature) => (
+            <path key={feature.properties.cartodb_id} d={pathGenerator(feature as any)} fill="#ddd" stroke="#333">
+              <title>{feature.properties.name}</title>
+            </path>
+          ))}
+          <Points points={points} projection={projection} openVenues={openVenues} focusedVenue={focusedVenue} />
+        </g>
       </svg>
     </div>
   );

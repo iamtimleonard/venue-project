@@ -206,6 +206,7 @@ export default function Page() {
           }))}
           openVenues={venues.openVenues}
           focusedVenue={venues.focusedVenue}
+          onRowSelection={onRowSelection}
         />
       </div>
     </main>

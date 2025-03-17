@@ -24,6 +24,7 @@ interface MapProps {
   points?: (Venue & { latitude: number; longitude: number })[];
   openVenues: number[];
   focusedVenue?: number;
+  onRowSelection: any;
 }
 
 const combineChartDimensions = (dimensions) => {
@@ -80,7 +81,7 @@ const chartSettings = {
   marginLeft: 75,
 };
 
-const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => {
+const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue, onRowSelection }) => {
   const [ref, dms] = useChartDimensions(chartSettings);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -123,7 +124,13 @@ const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => 
               <title>{feature.properties.name}</title>
             </path>
           ))}
-          <Points points={points} projection={projection} openVenues={openVenues} focusedVenue={focusedVenue} />
+          <Points
+            points={points}
+            projection={projection}
+            openVenues={openVenues}
+            focusedVenue={focusedVenue}
+            onRowSelection={onRowSelection}
+          />
         </g>
       </svg>
     </div>

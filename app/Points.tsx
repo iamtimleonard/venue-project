@@ -5,7 +5,8 @@ const Points: React.FC<{
   openVenues: number[];
   focusedVenue?: number;
   projection: any;
-}> = ({ points, projection, openVenues, focusedVenue }) => {
+  onRowSelection: any;
+}> = ({ points, projection, openVenues, focusedVenue, onRowSelection }) => {
   const colors = {
     jazz: 'blue',
     rock: 'red',
@@ -42,6 +43,7 @@ const Points: React.FC<{
         stroke={colors[venue.genres[0]] || 'black'}
         strokeWidth={strokeWidth(venue.capacity)}
         strokeOpacity={0.2}
+        onClick={() => onRowSelection(venue)}
       >
         <title>{venue.name}</title>
       </circle>

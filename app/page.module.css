@@ -9,4 +9,6 @@
 
 .chart {
   width: 100%;
+  padding: 10rem;
+  display: flex;
 }

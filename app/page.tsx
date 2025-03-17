@@ -6,6 +6,7 @@ import Map from './Map';
 import styles from './page.module.css';
 import TableView from './Table';
 import SelectedVenue from './SelectedVenue';
+import { Paper } from '@mui/material';
 
 type VenueState = {
   areaVenues: Venue[];
@@ -195,20 +196,22 @@ export default function Page() {
         </select>
         <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
       </div>
-      <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
-      <div className={styles.chart}>
-        <Map
-          data={geoData}
-          points={venues.areaVenues.map((venue) => ({
-            ...venue,
-            latitude: venue.location[0],
-            longitude: venue.location[1],
-          }))}
-          openVenues={venues.openVenues}
-          focusedVenue={venues.focusedVenue}
-          onRowSelection={onRowSelection}
-        />
-      </div>
+      <Paper sx={{ display: 'flex', margin: '1rem' }}>
+        <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
+        <div style={{ width: '75%' }}>
+          <Map
+            data={geoData}
+            points={venues.areaVenues.map((venue) => ({
+              ...venue,
+              latitude: venue.location[0],
+              longitude: venue.location[1],
+            }))}
+            openVenues={venues.openVenues}
+            focusedVenue={venues.focusedVenue}
+            onRowSelection={onRowSelection}
+          />
+        </div>
+      </Paper>
     </main>
   );
 }

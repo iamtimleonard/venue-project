@@ -5,6 +5,7 @@ import { Venue } from './api/graphql/types';
 import Map from './Map';
 import styles from './page.module.css';
 import TableView from './Table';
+import SelectedVenue from './SelectedVenue';
 
 type VenueState = {
   areaVenues: Venue[];
@@ -194,6 +195,7 @@ export default function Page() {
         </select>
         <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} />
       </div>
+      <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
       <div className={styles.chart}>
         <Map
           data={geoData}

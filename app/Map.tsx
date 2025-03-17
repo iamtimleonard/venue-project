@@ -115,7 +115,7 @@ const Map: React.FC<MapProps> = ({ data, points, openVenues, focusedVenue }) => 
   }, [dms.width, dms.height]);
 
   return (
-    <div ref={ref} style={{ height: '100vh' }}>
+    <div ref={ref} style={{ height: '100vh', border: '1px solid green' }}>
       <svg ref={svgRef} width={dms.width} height={dms.height}>
         <g>
           {data.features.map((feature) => (

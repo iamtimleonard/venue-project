@@ -193,7 +193,7 @@ export default function Page() {
             </option>
           ))}
         </select>
-        <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} />
+        <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
       </div>
       <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
       <div className={styles.chart}>

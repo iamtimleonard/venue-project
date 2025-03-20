@@ -180,7 +180,7 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      <FormControl>
+      <FormControl sx={{ width: 300, m: 1 }}>
         <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
         <input
           id="open-date"
@@ -193,7 +193,13 @@ export default function Page() {
         />
         <InputLabel id="by-genre">Genre Filter</InputLabel>
 
-        <Select labelId="by-genre" multiple value={venues.filter.genre} onChange={handleGenreChange}>
+        <Select
+          labelId="by-genre"
+          multiple
+          value={venues.filter.genre}
+          renderValue={(selected) => selected.join(', ')}
+          onChange={handleGenreChange}
+        >
           {genres.map((genre, idx) => (
             <MenuItem value={genre} key={genre}>
               <Checkbox checked={venues.filter.genre.includes(genre)} />

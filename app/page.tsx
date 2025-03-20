@@ -15,6 +15,7 @@ import {
   Paper,
   Select,
   SelectChangeEvent,
+  Slider,
 } from '@mui/material';
 
 type VenueState = {
@@ -43,7 +44,6 @@ const reducer: Reducer<
 > = (state, action) => {
   switch (action.type) {
     case 'filter:update': {
-      console.log('filter:update');
       const newFilter = action.payload.filter;
       const filteredVenues = state.areaVenues.filter((venue) => {
         if (newFilter.genre && newFilter.genre.length) {
@@ -108,7 +108,7 @@ export default function Page() {
     });
   };
 
-  const handleDateChange = ({ target }: ChangeEvent<HTMLInputElement>) => {
+  const handleDateChange = (event: Event, value: number, thumb: number) => {
     const { areaVenues, filter } = venues;
     dispatch({
       type: 'filter:update',
@@ -116,7 +116,7 @@ export default function Page() {
         areaVenues,
         filter: {
           ...filter,
-          date: target.value,
+          date: `${value}`,
         },
       },
     });
@@ -180,15 +180,17 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      <FormControl sx={{ width: 300, m: 1 }}>
-        <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
-        <input
-          id="open-date"
-          type="range"
-          value={venues.filter.date}
+      <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
+      <FormControl sx={{ width: 300, margin: 'auto' }}>
+        <Slider
+          aria-label="Year"
+          valueLabelDisplay="auto"
+          shiftStep={10}
           step={1}
+          marks
           min={1900}
-          max={new Date().getFullYear().toString()}
+          max={new Date().getFullYear()}
+          value={+venues.filter.date}
           onChange={handleDateChange}
         />
         <InputLabel id="by-genre">Genre Filter</InputLabel>
@@ -196,8 +198,8 @@ export default function Page() {
         <Select
           labelId="by-genre"
           multiple
-          value={venues.filter.genre}
-          renderValue={(selected) => selected.join(', ')}
+          value={venues.filter.genre as unknown as string}
+          renderValue={(selected: any) => selected.join(', ')}
           onChange={handleGenreChange}
         >
           {genres.map((genre, idx) => (
@@ -208,7 +210,6 @@ export default function Page() {
           ))}
         </Select>
       </FormControl>
-      <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
       <Paper sx={{ display: 'flex', margin: '1rem' }}>
         <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
         <div style={{ width: '75%' }}>

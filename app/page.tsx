@@ -6,7 +6,16 @@ import Map from './Map';
 import styles from './page.module.css';
 import TableView from './Table';
 import SelectedVenue from './SelectedVenue';
-import { Paper } from '@mui/material';
+import {
+  Checkbox,
+  FormControl,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+} from '@mui/material';
 
 type VenueState = {
   areaVenues: Venue[];
@@ -14,7 +23,7 @@ type VenueState = {
   openVenues: number[];
   focusedVenue?: number;
   filter: {
-    genre?: string;
+    genre?: string[];
     date: string;
     area: string;
   };
@@ -24,7 +33,7 @@ const reducer: Reducer<
   VenueState,
   {
     payload: {
-      filter: { genre?: string; date: string; area: string };
+      filter: { genre?: string[]; date: string; area: string };
       areaVenues: Venue[];
       selectedVenues?: Venue[];
       focusedVenue?: Venue;
@@ -34,13 +43,16 @@ const reducer: Reducer<
 > = (state, action) => {
   switch (action.type) {
     case 'filter:update': {
+      console.log('filter:update');
       const newFilter = action.payload.filter;
       const filteredVenues = state.areaVenues.filter((venue) => {
-        return (
-          (newFilter.genre ? venue.genres.includes(newFilter.genre) : true) &&
-          venue.dateOpen <= newFilter.date &&
-          (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
-        );
+        if (newFilter.genre && newFilter.genre.length) {
+          for (let test of newFilter.genre) {
+            if (venue.genres.includes(test)) return true;
+          }
+          return false;
+        }
+        return true;
       });
       const openVenues = state.areaVenues
         .filter(
@@ -54,17 +66,11 @@ const reducer: Reducer<
     case 'area:update': {
       const newVenues = action.payload.areaVenues;
       const newFilter = {
-        genre: '',
+        genre: [],
         date: new Date().getFullYear().toString(),
         area: action.payload.filter.area,
       };
-      const filteredVenues = newVenues.filter((venue) => {
-        return (
-          (newFilter.genre ? venue.genres.includes(newFilter.genre) : true) &&
-          venue.dateOpen <= newFilter.date &&
-          (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
-        );
-      });
+
       const openVenues = newVenues
         .filter(
           (venue) => venue.dateOpen <= newFilter.date && (venue.dateClosed ? venue.dateClosed >= newFilter.date : true)
@@ -75,8 +81,7 @@ const reducer: Reducer<
           (venue) => venue.dateOpen >= newFilter.date && (venue.dateClosed ? venue.dateClosed <= newFilter.date : true)
         )
         .map((venue) => venue.id);
-      console.log({ openVenues, closedVenues });
-      return { areaVenues: newVenues, filteredVenues, filter: newFilter, openVenues, closedVenues };
+      return { areaVenues: newVenues, filteredVenues: [...newVenues], filter: newFilter, openVenues, closedVenues };
     }
 
     case 'selected:update': {
@@ -90,7 +95,7 @@ export default function Page() {
     areaVenues: [],
     filteredVenues: [],
     openVenues: [],
-    filter: { genre: '', area: 'Philadelphia', date: '2025' },
+    filter: { genre: [], area: 'Philadelphia', date: '2025' },
   });
   const [geoData, setGeoData] = useState(null);
   const [genres, setGenres] = useState<string[]>([]);
@@ -117,7 +122,7 @@ export default function Page() {
     });
   };
 
-  const handleGenreChange = (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleGenreChange = (e: SelectChangeEvent<string>) => {
     const { areaVenues, filter } = venues;
     dispatch({
       type: 'filter:update',
@@ -125,7 +130,7 @@ export default function Page() {
         areaVenues,
         filter: {
           ...filter,
-          genre: e.target.value,
+          genre: typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value,
         },
       },
     });
@@ -175,7 +180,7 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.filter}>
+      <FormControl>
         <label htmlFor="open-date">Choose a date ({venues.filter.date}):</label>
         <input
           id="open-date"
@@ -186,22 +191,24 @@ export default function Page() {
           max={new Date().getFullYear().toString()}
           onChange={handleDateChange}
         />
-        <select value={venues.filter.genre} onChange={handleGenreChange}>
-          <option value="">-- Filter by Genre --</option>
+        <InputLabel id="by-genre">Genre Filter</InputLabel>
+
+        <Select labelId="by-genre" multiple value={venues.filter.genre} onChange={handleGenreChange}>
           {genres.map((genre, idx) => (
-            <option value={genre} key={idx}>
-              {genre}
-            </option>
+            <MenuItem value={genre} key={genre}>
+              <Checkbox checked={venues.filter.genre.includes(genre)} />
+              <ListItemText primary={genre} />
+            </MenuItem>
           ))}
-        </select>
-        <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
-      </div>
+        </Select>
+      </FormControl>
+      <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
       <Paper sx={{ display: 'flex', margin: '1rem' }}>
         <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
         <div style={{ width: '75%' }}>
           <Map
             data={geoData}
-            points={venues.areaVenues.map((venue) => ({
+            points={venues.filteredVenues.map((venue) => ({
               ...venue,
               latitude: venue.location[0],
               longitude: venue.location[1],

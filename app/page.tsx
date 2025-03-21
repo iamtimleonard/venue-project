@@ -7,6 +7,9 @@ import styles from './page.module.css';
 import TableView from './Table';
 import SelectedVenue from './SelectedVenue';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Checkbox,
   FormControl,
   Input,
@@ -17,7 +20,9 @@ import {
   Select,
   SelectChangeEvent,
   Slider,
+  Typography,
 } from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 
 type VenueState = {
   areaVenues: Venue[];
@@ -181,7 +186,14 @@ export default function Page() {
 
   return (
     <main className={styles.main}>
-      <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
+      <Accordion>
+        <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+          <Typography>Venues List</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
+        </AccordionDetails>
+      </Accordion>
       <FormControl margin="normal" sx={{ width: '50%', minWidth: '10rem', marginLeft: '25%' }}>
         <InputLabel>View active by year: {venues.filter.date}</InputLabel>
         <Slider

@@ -44,6 +44,7 @@ const Points: React.FC<{
         strokeWidth={strokeWidth(venue.capacity)}
         strokeOpacity={0.2}
         onClick={() => onRowSelection(venue)}
+        style={{ cursor: 'pointer' }}
       >
         <title>{venue.name}</title>
       </circle>

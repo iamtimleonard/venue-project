@@ -9,6 +9,7 @@ import SelectedVenue from './SelectedVenue';
 import {
   Checkbox,
   FormControl,
+  Input,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -181,7 +182,8 @@ export default function Page() {
   return (
     <main className={styles.main}>
       <TableView venues={venues.areaVenues} onRowSelection={onRowSelection} selectedVenueId={venues.focusedVenue} />
-      <FormControl sx={{ width: 300, margin: 'auto' }}>
+      <FormControl margin="normal" sx={{ width: '50%', minWidth: '10rem', marginLeft: '25%' }}>
+        <InputLabel>View active by year: {venues.filter.date}</InputLabel>
         <Slider
           aria-label="Year"
           valueLabelDisplay="auto"
@@ -192,14 +194,19 @@ export default function Page() {
           max={new Date().getFullYear()}
           value={+venues.filter.date}
           onChange={handleDateChange}
+          sx={{ margin: '2rem 0' }}
         />
-        <InputLabel id="by-genre">Genre Filter</InputLabel>
-
         <Select
           labelId="by-genre"
+          displayEmpty
           multiple
           value={venues.filter.genre as unknown as string}
-          renderValue={(selected: any) => selected.join(', ')}
+          renderValue={(selected: any) => {
+            if (selected.length === 0) {
+              return <em>Filter by genre</em>;
+            }
+            return selected.join(', ');
+          }}
           onChange={handleGenreChange}
         >
           {genres.map((genre, idx) => (
@@ -211,7 +218,6 @@ export default function Page() {
         </Select>
       </FormControl>
       <Paper sx={{ display: 'flex', margin: '1rem' }}>
-        <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
         <div style={{ width: '75%' }}>
           <Map
             data={geoData}
@@ -225,6 +231,7 @@ export default function Page() {
             onRowSelection={onRowSelection}
           />
         </div>
+        <SelectedVenue selectedVenue={venues.areaVenues.find((venue) => venue.id === venues.focusedVenue)} />
       </Paper>
     </main>
   );
